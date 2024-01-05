@@ -1,5 +1,4 @@
 import * as vscode from "vscode";
-
 export function activate(context: vscode.ExtensionContext) {
   const provider = new InlineValuesProvider();
 
@@ -30,6 +29,7 @@ class InlineValuesProvider implements vscode.InlineValuesProvider {
             activeEditor.document.uri
           )
           .then(async (symbol) => {
+            //BUG: symbol解析不全
             if (symbol !== undefined) {
               const list: Record<number, Array<vscode.DocumentSymbol>> = {};
               for (const variable of findVars(symbol)) {
