@@ -44,6 +44,30 @@ class InlineValuesProvider implements vscode.InlineValuesProvider {
                   if (list[position.range.start.line] === undefined) {
                     list[position.range.start.line] = [];
                   }
+                  if (
+                    position.range.end.character <
+                    document.lineAt(position.range.end.line).text.length
+                  ) {
+                    const lineText = document.lineAt(
+                      position.range.end.line
+                    ).text;
+                    let endCharacter = position.range.end.character;
+                    while (
+                      endCharacter < lineText.length &&
+                      /[a-zA-Z0-9_.]/.test(lineText[endCharacter])
+                    ) {
+                      endCharacter++;
+                    }
+                    variable.name = lineText.substring(
+                      position.range.start.character,
+                      endCharacter
+                    );
+                    // Do something with variableName, such as pushing it to the list
+                    variable.range = new vscode.Range(
+                      position.range.start,
+                      new vscode.Position(position.range.end.line, endCharacter)
+                    );
+                  }
                   list[position.range.start.line].push({
                     name: variable.name,
                     kind: variable.kind,
@@ -76,16 +100,17 @@ class InlineValuesProvider implements vscode.InlineValuesProvider {
           if (symbolcache[symbol.name] !== undefined) {
             stackFrame = symbolcache[symbol.name];
           } else {
-            stackFrame = context.frameId
-              ? await debugSession
-                  .customRequest("evaluate", {
-                    frameId: context.frameId,
-                    expression: symbol.name,
-                    context: "variables",
-                  })
-                  .then((result) => result)
-              : undefined;
+            stackFrame = await debugSession
+              .customRequest("evaluate", {
+                frameId: context.frameId,
+                expression: symbol.name,
+                context: "variables",
+              })
+              .then((result) => result);
             symbolcache[symbol.name] = stackFrame;
+          }
+          if (stackFrame.type === "NameError") {
+            continue;
           }
           const hint = new vscode.InlineValueText(
             symbolRange,
@@ -101,7 +126,11 @@ class InlineValuesProvider implements vscode.InlineValuesProvider {
 }
 function findVars(symbols: vscode.DocumentSymbol[]): vscode.DocumentSymbol[] {
   var vars = symbols.filter(
-    (symbol) => symbol.kind === vscode.SymbolKind.Variable
+    (symbol) =>
+      // [vscode.SymbolKind.Variable, vscode.SymbolKind.Function].includes(
+      //   symbol.kind
+      // )
+      true
   );
   return vars.concat(
     symbols
