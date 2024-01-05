@@ -29,32 +29,29 @@ class InlineValuesProvider implements vscode.InlineValuesProvider {
             "vscode.executeDocumentSymbolProvider",
             activeEditor.document.uri
           )
-          .then((symbol) => {
+          .then(async (symbol) => {
             if (symbol !== undefined) {
               const list: Record<number, Array<vscode.DocumentSymbol>> = {};
               for (const variable of findVars(symbol)) {
-                // Retrieve all ranges in the document where the variable appears
-                const regex = new RegExp(variable.name);
-                for (let i = 0; i < activeEditor.document.lineCount; i++) {
-                  const match = regex.exec(
-                    activeEditor.document.lineAt(i).text
-                  );
-                  if (match === null) {
-                    continue;
+                const all_refer = await vscode.commands
+                  .executeCommand<vscode.Location[]>(
+                    "vscode.executeReferenceProvider",
+                    activeEditor.document.uri,
+                    variable.range.start
+                  )
+                  .then((result) => result);
+                for (const position of all_refer) {
+                  if (list[position.range.start.line] === undefined) {
+                    list[position.range.start.line] = [];
                   }
-                  for (const m of match) {
-                    if (list[i] === undefined) {
-                      list[i] = [];
-                    }
-                    list[i].push({
-                      name: variable.name,
-                      kind: variable.kind,
-                      range: variable.range,
-                      selectionRange: variable.selectionRange,
-                      children: variable.children,
-                      detail: variable.detail,
-                    });
-                  }
+                  list[position.range.start.line].push({
+                    name: variable.name,
+                    kind: variable.kind,
+                    range: position.range,
+                    selectionRange: variable.selectionRange,
+                    children: variable.children,
+                    detail: variable.detail,
+                  });
                 }
               }
               return list;
