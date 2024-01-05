@@ -1,18 +1,39 @@
 {
   "name": "pyhint",
-  "displayName": "pyHint",
-  "description": "",
+  "displayName": "Debug pyHint",
+  "description": "Displaying the value and type of a variable in Hint while Debugging Python.",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.85.0"
   },
   "categories": [
-    "Other"
+    "Visualization"
   ],
+  "keywords": [
+    "Python",
+    "Debug",
+    "Hint",
+    "Visualization",
+    "stack"
+  ],
+  "sponsor": {
+    "url": "https://afdian.net/a/senanana"
+  },
+  "publisher": "sena-nana",
+  "license": "MIT",
   "activationEvents": [
     "onDebug"
   ],
+  "bugs": {
+    "url": "https://github.com/sena-nana/pyhint/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sena-nana/pyhint.git"
+  },
+  "pricing": "Free",
   "main": "./out/extension.js",
+  "homepage": "https://github.com/sena-nana/pyhint",
   "contributes": {},
   "scripts": {
     "vscode:prepublish": "pnpm run compile",
